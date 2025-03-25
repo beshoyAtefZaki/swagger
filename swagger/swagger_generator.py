@@ -12,6 +12,21 @@ from pydantic import BaseModel
 def get_default_params(func):
     return []
 
+
+
+def get_request_body(fun):
+    data = {}
+    params = get_function_params(fun)
+    for i in params :
+        data[i.get("name")] = {"type": i.get("schema").get("type")}
+    return data
+    # return  {  "name": {"type": "string",
+    #                    "description": "A required string field."                                                              } 
+    # }  
+                                                              
+                                                          
+
+    pass
 def find_pydantic_model_in_decorator(node):
     """Find the name of the Pydantic model used in the validate_request decorator.
     
@@ -146,14 +161,20 @@ def process_function(app_name, module_name, func_name, func, swagger, module):
 
         # Define the request body for methods that modify data
         request_body = {}
-        if pydantic_model_name and http_method in ["POST", "PUT", "PATCH"]:
-            pydantic_schema =   get_pydantic_model_schema(pydantic_model_name, module)
-            if pydantic_schema:
+        if  http_method in ["POST", "PUT", "PATCH"]:
+            # frappe.throw("POST")
+            # pydantic_schema =   get_pydantic_model_schema(pydantic_model_name, module)
+            pydantic_schema  = get_request_body(func)
+            if pydantic_schema :
                 request_body = {
-                    "description": "Request body",
-                    "required": True,
-                    "content": {"application/json": {"schema": pydantic_schema}},
-                }
+                        "description": "Request body",
+                        "required": True,
+                        "content": {"application/json": {"schema":
+                                                        {
+                                                                "type": "object",
+                                                                "properties": pydantic_schema
+                                                        }}},
+                    }
 
         # Define query parameters for methods that retrieve data
         
@@ -200,7 +221,7 @@ def process_function(app_name, module_name, func_name, func, swagger, module):
         # Initialize the path if not already present
         if path not in swagger["paths"]:
             swagger["paths"][path] = {}
-
+        # frappe.throw(str(request_body))
         # Update the Swagger specification with the function details
         swagger["paths"][path][http_method.lower()] = {
             "summary": func_name.title().replace("_", " "),
