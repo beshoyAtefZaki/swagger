@@ -137,7 +137,7 @@ def process_function(app_name, module_name, func_name, func, swagger, module):
         # params_list = get_function_params(func)
         # frappe.throw(str(func_name))
 
-        
+        params =[]
         http_method = "POST"
         for method in http_methods:
             if method in source_code:
